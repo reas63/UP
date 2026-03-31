@@ -61,3 +61,18 @@ export default function ArtCard({ art }: any) {
     </div>
   );
 }
+async function pagarCartao() {
+  const res = await fetch("/api/checkout", {
+    method: "POST",
+    body: JSON.stringify({
+      title: art.title,
+      price: art.price
+    })
+  });
+
+  const data = await res.json();
+  window.location.href = data.url;
+}
+<button onClick={pagarCartao}>
+  Pagar com Cartão
+</button>
