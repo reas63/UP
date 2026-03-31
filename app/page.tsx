@@ -1,12 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const [arts, setArts] = useState<any[]>([]);
+  const [editing, setEditing] = useState(false);
+
+  const [profile, setProfile] = useState({
+    name: "Artista UP",
+    bio: "Minha arte digital",
+    photo: "https://via.placeholder.com/100"
+  });
 
   useEffect(() => {
-    // simulação temporária (até conectar Supabase)
     setArts([
       {
         id: 1,
@@ -29,6 +35,76 @@ export default function Home() {
       }}>
         UP 🚀
       </h1>
+
+      {/* PERFIL */}
+      <div style={{
+        marginTop: 20,
+        textAlign: "center"
+      }}>
+        <img
+          src={profile.photo}
+          style={{
+            width: 80,
+            height: 80,
+            borderRadius: "50%"
+          }}
+        />
+
+        <h2>{profile.name}</h2>
+        <p>{profile.bio}</p>
+
+        <button
+          style={{
+            background: "#1D3557",
+            color: "#fff",
+            padding: 8,
+            borderRadius: 8,
+            marginTop: 5
+          }}
+          onClick={() => setEditing(!editing)}
+        >
+          Editar Perfil
+        </button>
+
+        {editing && (
+          <div style={{ marginTop: 10 }}>
+
+            <input
+              placeholder="Nome"
+              onChange={(e) =>
+                setProfile({ ...profile, name: e.target.value })
+              }
+            />
+
+            <input
+              placeholder="Bio"
+              onChange={(e) =>
+                setProfile({ ...profile, bio: e.target.value })
+              }
+            />
+
+            <input
+              placeholder="URL da foto"
+              onChange={(e) =>
+                setProfile({ ...profile, photo: e.target.value })
+              }
+            />
+
+            <button
+              style={{
+                background: "#E63946",
+                color: "#fff",
+                padding: 8,
+                marginTop: 5
+              }}
+              onClick={() => setEditing(false)}
+            >
+              Salvar
+            </button>
+
+          </div>
+        )}
+      </div>
 
       {/* BOTÕES */}
       <div style={{
@@ -57,7 +133,7 @@ export default function Home() {
         </button>
       </div>
 
-      {/* FEED GRID */}
+      {/* GRID */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
@@ -71,22 +147,9 @@ export default function Home() {
             boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
             padding: 10
           }}>
-            <img
-              src={art.image}
-              style={{
-                width: "100%",
-                borderRadius: 8
-              }}
-            />
-
-            <h2 style={{ fontSize: 16 }}>
-              {art.title}
-            </h2>
-
-            <p style={{
-              color: "#E63946",
-              fontWeight: "bold"
-            }}>
+            <img src={art.image} style={{ width: "100%" }} />
+            <h2>{art.title}</h2>
+            <p style={{ color: "#E63946" }}>
               R$ {art.price}
             </p>
           </div>
