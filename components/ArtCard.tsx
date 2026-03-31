@@ -8,8 +8,9 @@ export default function ArtCard({ art }: any) {
 
   const pixKey = "reas63@hotmail.com";
 
-  function gerarPix() {
-    setShowPix(true);
+  function gerarPixPayload() {
+    const payload = `00020126360014BR.GOV.BCB.PIX0114${pixKey}520400005303986540${art.price}5802BR5920UP Digital Art6009Sao Paulo62070503***6304`;
+    return payload;
   }
 
   return (
@@ -20,27 +21,17 @@ export default function ArtCard({ art }: any) {
       boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
     }}>
 
-      <img
-        src={art.image}
-        style={{
-          width: "100%",
-          borderRadius: 8
-        }}
-      />
+      <img src={art.image} style={{ width: "100%" }} />
 
       <h2>{art.title}</h2>
 
-      <p style={{
-        color: "#E63946",
-        fontWeight: "bold"
-      }}>
+      <p style={{ color: "#E63946", fontWeight: "bold" }}>
         R$ {art.price}
       </p>
 
       <button
-        onClick={gerarPix}
+        onClick={() => setShowPix(true)}
         style={{
-          marginTop: 10,
           width: "100%",
           padding: 10,
           background: "#1D3557",
@@ -54,13 +45,15 @@ export default function ArtCard({ art }: any) {
       {showPix && (
         <div style={{ marginTop: 10 }}>
 
-          <p><b>Pague via Pix:</b></p>
-
-          <p>{pixKey}</p>
+          <p><b>Pague com Pix:</b></p>
 
           <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${pixKey}`}
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${gerarPixPayload()}`}
           />
+
+          <p style={{ fontSize: 12 }}>
+            Chave: {pixKey}
+          </p>
 
         </div>
       )}
