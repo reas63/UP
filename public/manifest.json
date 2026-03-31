@@ -1,0 +1,8 @@
+{
+  "name": "UP",
+  "short_name": "UP",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#E63946"
+}
