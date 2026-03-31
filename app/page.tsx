@@ -1,8 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+import ArtCard from "@/components/ArtCard";
+import Upload from "@/components/Upload";
+import GeminiBox from "@/components/GeminiBox";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function Home() {
+
   const [arts, setArts] = useState<any[]>([]);
   const [editing, setEditing] = useState(false);
 
@@ -12,15 +23,18 @@ export default function Home() {
     photo: "https://via.placeholder.com/100"
   });
 
+  // 🔥 carregar dados reais do banco
   useEffect(() => {
-    setArts([
-      {
-        id: 1,
-        title: "Arte Demo",
-        image: "https://via.placeholder.com/300",
-        price: 10
-      }
-    ]);
+    async function load() {
+      const { data } = await supabase
+        .from("arts")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      setArts(data || []);
+    }
+
+    load();
   }, []);
 
   return (
@@ -37,10 +51,7 @@ export default function Home() {
       </h1>
 
       {/* PERFIL */}
-      <div style={{
-        marginTop: 20,
-        textAlign: "center"
-      }}>
+      <div style={{ textAlign: "center", marginTop: 20 }}>
         <img
           src={profile.photo}
           style={{
@@ -54,21 +65,19 @@ export default function Home() {
         <p>{profile.bio}</p>
 
         <button
+          onClick={() => setEditing(!editing)}
           style={{
             background: "#1D3557",
             color: "#fff",
             padding: 8,
-            borderRadius: 8,
-            marginTop: 5
+            borderRadius: 8
           }}
-          onClick={() => setEditing(!editing)}
         >
           Editar Perfil
         </button>
 
         {editing && (
           <div style={{ marginTop: 10 }}>
-
             <input
               placeholder="Nome"
               onChange={(e) =>
@@ -91,49 +100,31 @@ export default function Home() {
             />
 
             <button
+              onClick={() => setEditing(false)}
               style={{
                 background: "#E63946",
                 color: "#fff",
                 padding: 8,
                 marginTop: 5
               }}
-              onClick={() => setEditing(false)}
             >
               Salvar
             </button>
-
           </div>
         )}
       </div>
 
-      {/* BOTÕES */}
-      <div style={{
-        display: "flex",
-        gap: 10,
-        marginTop: 20
-      }}>
-        <button style={{
-          flex: 1,
-          padding: 10,
-          background: "#1D3557",
-          color: "#fff",
-          borderRadius: 8
-        }}>
-          Upload
-        </button>
-
-        <button style={{
-          flex: 1,
-          padding: 10,
-          background: "#E63946",
-          color: "#fff",
-          borderRadius: 8
-        }}>
-          IA Gerar
-        </button>
+      {/* UPLOAD REAL */}
+      <div style={{ marginTop: 20 }}>
+        <Upload />
       </div>
 
-      {/* GRID */}
+      {/* IA */}
+      <div style={{ marginTop: 20 }}>
+        <GeminiBox />
+      </div>
+
+      {/* FEED */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
@@ -141,18 +132,7 @@ export default function Home() {
         marginTop: 20
       }}>
         {arts.map((art) => (
-          <div key={art.id} style={{
-            background: "#fff",
-            borderRadius: 10,
-            boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-            padding: 10
-          }}>
-            <img src={art.image} style={{ width: "100%" }} />
-            <h2>{art.title}</h2>
-            <p style={{ color: "#E63946" }}>
-              R$ {art.price}
-            </p>
-          </div>
+          <ArtCard key={art.id} art={art} />
         ))}
       </div>
 
