@@ -1,9 +1,15 @@
 "use client";
 
+import { useState } from "react";
+
 export default function ArtCard({ art }: any) {
 
-  function comprar() {
-    alert("Compra iniciada: " + art.title);
+  const [showPix, setShowPix] = useState(false);
+
+  const pixKey = "reas63@hotmail.com";
+
+  function gerarPix() {
+    setShowPix(true);
   }
 
   return (
@@ -31,9 +37,8 @@ export default function ArtCard({ art }: any) {
         R$ {art.price}
       </p>
 
-      {/* BOTÃO */}
       <button
-        onClick={comprar}
+        onClick={gerarPix}
         style={{
           marginTop: 10,
           width: "100%",
@@ -45,6 +50,20 @@ export default function ArtCard({ art }: any) {
       >
         Comprar
       </button>
+
+      {showPix && (
+        <div style={{ marginTop: 10 }}>
+
+          <p><b>Pague via Pix:</b></p>
+
+          <p>{pixKey}</p>
+
+          <img
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${pixKey}`}
+          />
+
+        </div>
+      )}
 
     </div>
   );
