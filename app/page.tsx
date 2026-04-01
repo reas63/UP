@@ -15,6 +15,10 @@ export default function Home() {
   const [file, setFile] = useState<any>(null);
   const [price, setPrice] = useState("");
 
+  const [prompt, setPrompt] = useState("");
+  const [loadingAI, setLoadingAI] = useState(false);
+
+  // 🔥 carregar feed
   async function load() {
     const { data } = await supabase
       .from("arts")
@@ -28,6 +32,7 @@ export default function Home() {
     load();
   }, []);
 
+  // 🚀 upload manual
   async function upload() {
     if (!file) return;
 
@@ -52,8 +57,26 @@ export default function Home() {
     load();
   }
 
-  async function comprar(art: any) {
-    alert("Pagamento via Pix:\nreas63@hotmail.com");
+  // 🤖 IA
+  async function gerarIA() {
+    if (!prompt) return;
+
+    setLoadingAI(true);
+
+    // 👉 aqui depois pode conectar Gemini real
+    const fakeImage = "https://picsum.photos/500?random=" + Math.random();
+
+    await supabase.from("arts").insert([
+      {
+        title: prompt,
+        image: fakeImage,
+        price: 10
+      }
+    ]);
+
+    setPrompt("");
+    setLoadingAI(false);
+    load();
   }
 
   return (
@@ -76,13 +99,48 @@ export default function Home() {
       {/* PERFIL */}
       <Profile />
 
+      {/* 🤖 IA */}
+      <div style={{
+        background: "#fff",
+        padding: 15,
+        borderRadius: 15,
+        marginTop: 15
+      }}>
+
+        <input
+          placeholder="Descreva a arte (ex: gato cyberpunk)"
+          value={prompt}
+          onChange={(e)=>setPrompt(e.target.value)}
+          style={{
+            width: "100%",
+            padding: 10,
+            borderRadius: 8,
+            border: "1px solid #ddd"
+          }}
+        />
+
+        <button
+          onClick={gerarIA}
+          style={{
+            width: "100%",
+            marginTop: 10,
+            padding: 10,
+            background: "#1D3557",
+            color: "#fff",
+            borderRadius: 10
+          }}
+        >
+          {loadingAI ? "Gerando..." : "🤖 Gerar Arte IA"}
+        </button>
+
+      </div>
+
       {/* UPLOAD */}
       <div style={{
         background: "#fff",
         padding: 15,
         borderRadius: 15,
-        marginTop: 15,
-        boxShadow: "0 6px 15px rgba(0,0,0,0.05)"
+        marginTop: 15
       }}>
 
         <input type="file" onChange={(e)=>setFile(e.target.files?.[0])} />
@@ -107,8 +165,7 @@ export default function Home() {
             padding: 12,
             background: "#E63946",
             color: "#fff",
-            borderRadius: 10,
-            fontWeight: "bold"
+            borderRadius: 10
           }}
         >
           🚀 Publicar Arte
@@ -129,8 +186,7 @@ export default function Home() {
             background: "#fff",
             borderRadius: 16,
             overflow: "hidden",
-            boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
-            transition: "0.2s"
+            boxShadow: "0 8px 20px rgba(0,0,0,0.06)"
           }}>
 
             <img
@@ -153,8 +209,7 @@ export default function Home() {
 
               <p style={{
                 color: "#E63946",
-                fontWeight: "bold",
-                fontSize: 16
+                fontWeight: "bold"
               }}>
                 R$ {art.price}
               </p>
@@ -166,24 +221,37 @@ export default function Home() {
                 marginTop: 8
               }}>
 
-                <button style={{
-                  padding: 6,
-                  borderRadius: 8,
-                  background: "#eee"
-                }}>
-                  ❤️
-                </button>
-
-                <button
-                  onClick={()=>comprar(art)}
+                {/* DOWNLOAD */}
+                <a
+                  href={art.image}
+                  download
                   style={{
                     padding: 6,
                     borderRadius: 8,
-                    background: "#1D3557",
+                    background: "#eee",
+                    textDecoration: "none"
+                  }}
+                >
+                  ⬇️
+                </a>
+
+                {/* DELETE */}
+                <button
+                  onClick={async ()=>{
+                    await supabase
+                      .from("arts")
+                      .delete()
+                      .eq("id", art.id);
+                    load();
+                  }}
+                  style={{
+                    padding: 6,
+                    borderRadius: 8,
+                    background: "red",
                     color: "#fff"
                   }}
                 >
-                  💰 Comprar
+                  🗑️
                 </button>
 
               </div>
