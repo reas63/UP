@@ -10,10 +10,12 @@ const supabase = createClient(
 
 export default function Profile() {
 
-  const [file, setFile] = useState<any>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [photo, setPhoto] = useState("");
+  const [bio, setBio] = useState("");
 
   async function uploadPhoto() {
+    if (!file) return;
 
     const fileName = "profile-" + Date.now();
 
@@ -25,13 +27,22 @@ export default function Profile() {
   }
 
   return (
-    <div>
+    <div style={{ marginBottom: 20 }}>
 
-      {photo && <img src={photo} style={{ width: 80, borderRadius: "50%" }} />}
+      <h3>Perfil</h3>
 
-      <input type="file" onChange={(e)=>setFile(e.target.files?.[0])} />
+      {photo && (
+        <img src={photo} width={80} style={{ borderRadius: "50%" }} />
+      )}
 
-      <button onClick={uploadPhoto}>Foto</button>
+      <input type="file" onChange={(e)=>setFile(e.target.files?.[0] || null)} />
+      <button onClick={uploadPhoto}>Editar Foto</button>
+
+      <textarea
+        placeholder="Sua bio"
+        value={bio}
+        onChange={(e)=>setBio(e.target.value)}
+      />
 
     </div>
   );
