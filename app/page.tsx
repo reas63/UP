@@ -2,10 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-
-import ArtCard from "@/components/ArtCard";
-import Upload from "@/components/Upload";
-import GeminiBox from "@/components/GeminiBox";
+import Profile from "@/components/Profile";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,125 +12,187 @@ const supabase = createClient(
 export default function Home() {
 
   const [arts, setArts] = useState<any[]>([]);
-  const [editing, setEditing] = useState(false);
+  const [file, setFile] = useState<any>(null);
+  const [price, setPrice] = useState("");
 
-  const [profile, setProfile] = useState({
-    name: "Artista UP",
-    bio: "Minha arte digital",
-    photo: "https://via.placeholder.com/100"
-  });
+  async function load() {
+    const { data } = await supabase
+      .from("arts")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  // 🔥 carregar dados reais do banco
+    setArts(data || []);
+  }
+
   useEffect(() => {
-    async function load() {
-      const { data } = await supabase
-        .from("arts")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      setArts(data || []);
-    }
-
     load();
   }, []);
 
+  async function upload() {
+    if (!file) return;
+
+    const fileName = Date.now() + "-" + file.name;
+
+    await supabase.storage.from("arts").upload(fileName, file);
+
+    const { data } = supabase.storage
+      .from("arts")
+      .getPublicUrl(fileName);
+
+    await supabase.from("arts").insert([
+      {
+        title: "Arte UP",
+        image: data.publicUrl,
+        price: Number(price)
+      }
+    ]);
+
+    setFile(null);
+    setPrice("");
+    load();
+  }
+
+  async function comprar(art: any) {
+    alert("Pagamento via Pix:\nreas63@hotmail.com");
+  }
+
   return (
-    <div style={{ padding: 16 }}>
+    <div style={{
+      background: "#F5F7FA",
+      minHeight: "100vh",
+      padding: 16
+    }}>
 
       {/* HEADER */}
       <h1 style={{
-        fontSize: 32,
-        fontWeight: "bold",
         textAlign: "center",
-        color: "#E63946"
+        fontSize: 30,
+        fontWeight: "bold",
+        color: "#1D3557"
       }}>
-        UP 🚀
+        UP 🎨 Marketplace
       </h1>
 
       {/* PERFIL */}
-      <div style={{ textAlign: "center", marginTop: 20 }}>
-        <img
-          src={profile.photo}
+      <Profile />
+
+      {/* UPLOAD */}
+      <div style={{
+        background: "#fff",
+        padding: 15,
+        borderRadius: 15,
+        marginTop: 15,
+        boxShadow: "0 6px 15px rgba(0,0,0,0.05)"
+      }}>
+
+        <input type="file" onChange={(e)=>setFile(e.target.files?.[0])} />
+
+        <input
+          placeholder="Preço (R$)"
+          onChange={(e)=>setPrice(e.target.value)}
           style={{
-            width: 80,
-            height: 80,
-            borderRadius: "50%"
+            marginTop: 8,
+            width: "100%",
+            padding: 10,
+            borderRadius: 8,
+            border: "1px solid #ddd"
           }}
         />
 
-        <h2>{profile.name}</h2>
-        <p>{profile.bio}</p>
-
         <button
-          onClick={() => setEditing(!editing)}
+          onClick={upload}
           style={{
-            background: "#1D3557",
+            width: "100%",
+            marginTop: 10,
+            padding: 12,
+            background: "#E63946",
             color: "#fff",
-            padding: 8,
-            borderRadius: 8
+            borderRadius: 10,
+            fontWeight: "bold"
           }}
         >
-          Editar Perfil
+          🚀 Publicar Arte
         </button>
 
-        {editing && (
-          <div style={{ marginTop: 10 }}>
-            <input
-              placeholder="Nome"
-              onChange={(e) =>
-                setProfile({ ...profile, name: e.target.value })
-              }
-            />
-
-            <input
-              placeholder="Bio"
-              onChange={(e) =>
-                setProfile({ ...profile, bio: e.target.value })
-              }
-            />
-
-            <input
-              placeholder="URL da foto"
-              onChange={(e) =>
-                setProfile({ ...profile, photo: e.target.value })
-              }
-            />
-
-            <button
-              onClick={() => setEditing(false)}
-              style={{
-                background: "#E63946",
-                color: "#fff",
-                padding: 8,
-                marginTop: 5
-              }}
-            >
-              Salvar
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* UPLOAD REAL */}
-      <div style={{ marginTop: 20 }}>
-        <Upload />
-      </div>
-
-      {/* IA */}
-      <div style={{ marginTop: 20 }}>
-        <GeminiBox />
       </div>
 
       {/* FEED */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
-        gap: 10,
+        gap: 14,
         marginTop: 20
       }}>
+
         {arts.map((art) => (
-          <ArtCard key={art.id} art={art} />
+          <div key={art.id} style={{
+            background: "#fff",
+            borderRadius: 16,
+            overflow: "hidden",
+            boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
+            transition: "0.2s"
+          }}>
+
+            <img
+              src={art.image}
+              style={{
+                width: "100%",
+                height: 160,
+                objectFit: "cover"
+              }}
+            />
+
+            <div style={{ padding: 10 }}>
+
+              <p style={{
+                fontWeight: "bold",
+                color: "#1D3557"
+              }}>
+                {art.title}
+              </p>
+
+              <p style={{
+                color: "#E63946",
+                fontWeight: "bold",
+                fontSize: 16
+              }}>
+                R$ {art.price}
+              </p>
+
+              {/* AÇÕES */}
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: 8
+              }}>
+
+                <button style={{
+                  padding: 6,
+                  borderRadius: 8,
+                  background: "#eee"
+                }}>
+                  ❤️
+                </button>
+
+                <button
+                  onClick={()=>comprar(art)}
+                  style={{
+                    padding: 6,
+                    borderRadius: 8,
+                    background: "#1D3557",
+                    color: "#fff"
+                  }}
+                >
+                  💰 Comprar
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
         ))}
+
       </div>
 
     </div>
