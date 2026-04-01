@@ -1,23 +1,57 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 
-export default function Upload() {
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+export default function Upload({ reload }: any) {
+
   const [file, setFile] = useState<any>(null);
+  const [price, setPrice] = useState("");
 
   async function upload() {
+    if (!file) return;
+
+    const fileName = Date.now() + "-" + file.name;
+
     await supabase.storage
       .from("arts")
-      .upload(`public/${file.name}`, file);
+      .upload(fileName, file);
+
+    const { data } = supabase.storage
+      .from("arts")
+      .getPublicUrl(fileName);
+
+    await supabase.from("arts").insert([
+      {
+        title: "Arte UP",
+        image: data.publicUrl,
+        price: Number(price)
+      }
+    ]);
 
     alert("Upload feito!");
+    reload();
   }
 
   return (
-    <div>
+    <div style={{ marginTop: 20 }}>
+
       <input type="file" onChange={(e)=>setFile(e.target.files?.[0])}/>
-      <button onClick={upload}>Enviar</button>
+
+      <input
+        placeholder="Preço"
+        onChange={(e)=>setPrice(e.target.value)}
+      />
+
+      <button onClick={upload}>
+        Enviar Arte
+      </button>
+
     </div>
   );
 }
