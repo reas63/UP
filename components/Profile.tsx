@@ -14,67 +14,24 @@ export default function Profile() {
   const [photo, setPhoto] = useState("");
 
   async function uploadPhoto() {
-    if (!file) return;
 
     const fileName = "profile-" + Date.now();
 
     await supabase.storage.from("arts").upload(fileName, file);
 
-    const { data } = supabase.storage
-      .from("arts")
-      .getPublicUrl(fileName);
+    const { data } = supabase.storage.from("arts").getPublicUrl(fileName);
 
     setPhoto(data.publicUrl);
   }
 
   return (
-    <div style={{
-      background: "#fff",
-      padding: 20,
-      borderRadius: 16,
-      textAlign: "center",
-      marginTop: 15,
-      boxShadow: "0 6px 15px rgba(0,0,0,0.05)"
-    }}>
+    <div>
 
-      {photo ? (
-        <img
-          src={photo}
-          style={{
-            width: 90,
-            height: 90,
-            borderRadius: "50%",
-            objectFit: "cover"
-          }}
-        />
-      ) : (
-        <div style={{
-          width: 90,
-          height: 90,
-          borderRadius: "50%",
-          background: "#ddd",
-          margin: "auto"
-        }} />
-      )}
+      {photo && <img src={photo} style={{ width: 80, borderRadius: "50%" }} />}
 
-      <input
-        type="file"
-        onChange={(e)=>setFile(e.target.files?.[0])}
-        style={{ marginTop: 10 }}
-      />
+      <input type="file" onChange={(e)=>setFile(e.target.files?.[0])} />
 
-      <button
-        onClick={uploadPhoto}
-        style={{
-          marginTop: 10,
-          padding: 10,
-          background: "#1D3557",
-          color: "#fff",
-          borderRadius: 10
-        }}
-      >
-        Editar Foto
-      </button>
+      <button onClick={uploadPhoto}>Foto</button>
 
     </div>
   );
