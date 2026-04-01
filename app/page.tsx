@@ -12,31 +12,43 @@ const supabase = createClient(
 export default function Home() {
 
   const [arts, setArts] = useState<any[]>([]);
-  const [file, setFile] = useState<any>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [price, setPrice] = useState("");
   const [prompt, setPrompt] = useState("");
   const [pix, setPix] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
   async function load() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("arts")
       .select("*")
       .order("created_at", { ascending: false });
 
-    setArts(data || []);
+    if (!error) setArts(data || []);
   }
 
   useEffect(() => {
     load();
   }, []);
 
-  // UPLOAD
+  // UPLOAD REAL
   async function upload() {
-    if (!file) return;
+    if (!file) return alert("Escolha uma imagem");
+
+    setLoading(true);
 
     const fileName = Date.now() + "-" + file.name;
 
-    await supabase.storage.from("arts").upload(fileName, file);
+    const { error: uploadError } = await supabase
+      .storage
+      .from("arts")
+      .upload(fileName, file);
+
+    if (uploadError) {
+      alert("Erro upload");
+      setLoading(false);
+      return;
+    }
 
     const { data } = supabase.storage
       .from("arts")
@@ -53,61 +65,78 @@ export default function Home() {
 
     setFile(null);
     setPrice("");
+    setLoading(false);
     load();
   }
 
-  // IA
+  // IA (simples)
   async function gerarIA() {
-    const fakeImage = "https://picsum.photos/500?random=" + Math.random();
+    if (!prompt) return alert("Digite algo");
+
+    setLoading(true);
+
+    const image = "https://picsum.photos/500?random=" + Math.random();
 
     await supabase.from("arts").insert([
       {
         title: prompt,
-        image: fakeImage,
+        image,
         price: 10,
         pago: false
       }
     ]);
 
     setPrompt("");
+    setLoading(false);
     load();
   }
 
   // PIX
   async function comprar(art: any) {
-    const res = await fetch("/api/pix", {
-      method: "POST",
-      body: JSON.stringify({
-        price: art.price,
-        title: art.title
-      })
-    });
+    try {
+      const res = await fetch("/api/pix", {
+        method: "POST",
+        body: JSON.stringify({
+          price: art.price,
+          title: art.title
+        })
+      });
 
-    const data = await res.json();
-    setPix(data);
+      const data = await res.json();
+      setPix(data);
+
+    } catch {
+      alert("Erro Pix");
+    }
   }
 
   return (
-    <div style={{ background: "#F5F7FA", minHeight: "100vh", padding: 16 }}>
+    <div style={{ padding: 15 }}>
 
-      <h1 style={{ textAlign: "center", color: "#1D3557" }}>
-        UP Marketplace 🎨
-      </h1>
+      <h1>UP Marketplace 🎨</h1>
 
       <Profile />
 
       {/* IA */}
-      <input
-        placeholder="Gerar arte IA"
-        value={prompt}
-        onChange={(e)=>setPrompt(e.target.value)}
-      />
-      <button onClick={gerarIA}>🤖 Gerar</button>
+      <div>
+        <input
+          value={prompt}
+          onChange={(e)=>setPrompt(e.target.value)}
+          placeholder="Descreva a arte"
+        />
+        <button onClick={gerarIA}>
+          {loading ? "..." : "Gerar IA"}
+        </button>
+      </div>
 
       {/* UPLOAD */}
-      <input type="file" onChange={(e)=>setFile(e.target.files?.[0])}/>
-      <input placeholder="Preço" onChange={(e)=>setPrice(e.target.value)}/>
-      <button onClick={upload}>🚀 Upload</button>
+      <div>
+        <input type="file" onChange={(e)=>setFile(e.target.files?.[0] || null)} />
+        <input placeholder="Preço" onChange={(e)=>setPrice(e.target.value)} />
+        <button onClick={upload}>
+          {loading ? "..." : "Upload"}
+        </button>
+      </div>
 
       {/* PIX */}
       {pix && (
@@ -119,37 +148,31 @@ export default function Home() {
       )}
 
       {/* FEED */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-
+      <div style={{ marginTop: 20 }}>
         {arts.map((art) => (
-          <div key={art.id} style={{ background: "#fff", padding: 10 }}>
+          <div key={art.id} style={{ marginBottom: 20 }}>
 
-            <img src={art.image} style={{ width: "100%" }} />
+            <img src={art.image} width="100%" />
 
             <p>R$ {art.price}</p>
 
-            {/* DOWNLOAD BLOQUEADO */}
             {art.pago ? (
-              <a href={art.image} download>⬇️ Download</a>
+              <a href={art.image} download>Download</a>
             ) : (
-              <button onClick={()=>comprar(art)}>
-                💰 Comprar via Pix
-              </button>
+              <button onClick={()=>comprar(art)}>Comprar</button>
             )}
 
-            {/* DELETE */}
             <button
               onClick={async ()=>{
                 await supabase.from("arts").delete().eq("id", art.id);
                 load();
               }}
             >
-              🗑️
+              Deletar
             </button>
 
           </div>
         ))}
-
       </div>
 
     </div>
