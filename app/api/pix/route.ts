@@ -4,7 +4,7 @@ export async function POST(req: Request) {
 
   const { price, title } = await req.json();
 
-  const response = await fetch("https://api.mercadopago.com/v1/payments", {
+  const res = await fetch("https://api.mercadopago.com/v1/payments", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${process.env.MERCADO_PAGO_TOKEN}`,
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     })
   });
 
-  const data = await response.json();
+  const data = await res.json();
 
   return NextResponse.json({
     copiaecola: data.point_of_interaction.transaction_data.qr_code,
