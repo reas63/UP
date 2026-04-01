@@ -9,19 +9,16 @@ const supabase = createClient(
 );
 
 export default function Profile() {
-  const [name, setName] = useState("Artista UP");
-  const [bio, setBio] = useState("Minha arte digital");
-  const [photo, setPhoto] = useState("");
+
   const [file, setFile] = useState<any>(null);
+  const [photo, setPhoto] = useState("");
 
   async function uploadPhoto() {
     if (!file) return;
 
     const fileName = "profile-" + Date.now();
 
-    await supabase.storage
-      .from("arts")
-      .upload(fileName, file);
+    await supabase.storage.from("arts").upload(fileName, file);
 
     const { data } = supabase.storage
       .from("arts")
@@ -31,39 +28,52 @@ export default function Profile() {
   }
 
   return (
-    <div style={{ textAlign: "center", marginTop: 20 }}>
+    <div style={{
+      background: "#fff",
+      padding: 20,
+      borderRadius: 16,
+      textAlign: "center",
+      marginTop: 15,
+      boxShadow: "0 6px 15px rgba(0,0,0,0.05)"
+    }}>
 
-      {photo && (
+      {photo ? (
         <img
           src={photo}
           style={{
-            width: 80,
-            height: 80,
-            borderRadius: "50%"
+            width: 90,
+            height: 90,
+            borderRadius: "50%",
+            objectFit: "cover"
           }}
         />
+      ) : (
+        <div style={{
+          width: 90,
+          height: 90,
+          borderRadius: "50%",
+          background: "#ddd",
+          margin: "auto"
+        }} />
       )}
-
-      <h2>{name}</h2>
-      <p>{bio}</p>
-
-      <input
-        placeholder="Nome"
-        onChange={(e) => setName(e.target.value)}
-      />
-
-      <input
-        placeholder="Bio"
-        onChange={(e) => setBio(e.target.value)}
-      />
 
       <input
         type="file"
-        onChange={(e) => setFile(e.target.files?.[0])}
+        onChange={(e)=>setFile(e.target.files?.[0])}
+        style={{ marginTop: 10 }}
       />
 
-      <button onClick={uploadPhoto}>
-        Salvar Foto
+      <button
+        onClick={uploadPhoto}
+        style={{
+          marginTop: 10,
+          padding: 10,
+          background: "#1D3557",
+          color: "#fff",
+          borderRadius: 10
+        }}
+      >
+        Editar Foto
       </button>
 
     </div>
