@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { price, title } = await req.json();
+    const body = await req.json();
 
     const response = await fetch("https://api.mercadopago.com/v1/payments", {
       method: "POST",
@@ -11,19 +11,21 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        transaction_amount: Number(price),
-        description: title,
+        transaction_amount: Number(body.price),
+        description: body.title,
         payment_method_id: "pix",
         payer: {
-          email: "comprador@email.com"
-        }
+          email: "test@test.com",
+        },
       }),
     });
 
     const data = await response.json();
 
+    console.log("PIX RESPONSE:", data);
+
     if (!data.point_of_interaction) {
-      return NextResponse.json({ error: "Erro ao gerar Pix", data });
+      return NextResponse.json({ error: data });
     }
 
     return NextResponse.json({
@@ -31,7 +33,7 @@ export async function POST(req: Request) {
       qr: data.point_of_interaction.transaction_data.qr_code_base64,
     });
 
-  } catch (error) {
+  } catch (err) {
     return NextResponse.json({ error: "Erro interno Pix" });
   }
 }
