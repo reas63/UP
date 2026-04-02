@@ -10,23 +10,27 @@ type Art = {
 
 export default function Home() {
   const [arts, setArts] = useState<Art[]>([]);
-  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [qr, setQr] = useState<string | null>(null);
 
   useEffect(() => {
     loadArts();
   }, []);
 
   async function loadArts() {
-    const { data } = await supabase.from("arts").select("*");
+    const { data } = await supabase
+      .from("arts")
+      .select("*")
+      .order("created_at", { ascending: false });
+
     setArts(data || []);
   }
 
-  async function handleDelete(id: string) {
-    await supabase.from("arts").delete().eq("id", id);
-    loadArts();
+  async function handleLike(artId: string) {
+    await supabase.from("likes").insert([{ art_id: artId }]);
+    alert("Curtido ❤️");
   }
 
-  async function handleBuy(price: number, artId: string) {
+  async function handleBuy(price: number, id: string) {
     const res = await fetch("/api/pix", {
       method: "POST",
       headers: {
@@ -36,17 +40,11 @@ export default function Home() {
     });
 
     const data = await res.json();
+    setQr(data.qr_code_base64);
 
-    if (data.qr_code_base64) {
-      setQrCode(data.qr_code_base64);
-    } else {
-      alert("Erro ao gerar Pix");
-    }
-
-    // salvar venda
     await supabase.from("sales").insert([
       {
-        art_id: artId,
+        art_id: id,
         amount: price,
       },
     ]);
@@ -54,39 +52,28 @@ export default function Home() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h1>Feed de Artes</h1>
+      <h1>UPBlog</h1>
 
-      {/* QR CODE */}
-      {qrCode && (
-        <div style={{ marginBottom: 20 }}>
+      {qr && (
+        <div>
           <h3>Pague com Pix:</h3>
-          <img
-            src={`data:image/png;base64,${qrCode}`}
-            width={200}
-          />
+          <img src={`data:image/png;base64,${qr}`} width={200} />
         </div>
       )}
 
       {arts.map((art) => (
-        <div
-          key={art.id}
-          style={{
-            border: "1px solid #ccc",
-            margin: 10,
-            padding: 10,
-          }}
-        >
-          <img src={art.url} width={200} />
+        <div key={art.id} style={{ marginBottom: 30 }}>
+          <img src={art.url} width={250} />
 
           <h3>{art.title}</h3>
           <p>R$ {art.price}</p>
 
-          <button onClick={() => handleDelete(art.id)}>
-            Delete
+          <button onClick={() => handleBuy(art.price, art.id)}>
+            Comprar
           </button>
 
-          <button onClick={() => handleBuy(art.price, art.id)}>
-            Comprar Pix
+          <button onClick={() => handleLike(art.id)}>
+            ❤️ Curtir
           </button>
         </div>
       ))}
