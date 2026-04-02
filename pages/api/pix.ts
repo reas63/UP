@@ -1,13 +1,27 @@
-// pages/api/pix.ts
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from "next";
 
-type Data = { qrCodeUrl?: string; error?: string };
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido' });
-
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { amount } = req.body;
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PIX:${amount}`;
 
-  res.status(200).json({ qrCodeUrl });
+  const response = await fetch("https://api.mercadopago.com/v1/payments", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      transaction_amount: amount,
+      payment_method_id: "pix",
+      payer: {
+        email: "teste@email.com",
+      },
+    }),
+  });
+
+  const data = await response.json();
+
+  res.status(200).json({
+    qr_code: data.point_of_interaction?.transaction_data?.qr_code,
+    qr_code_base64: data.point_of_interaction?.transaction_data?.qr_code_base64,
+  });
 }
