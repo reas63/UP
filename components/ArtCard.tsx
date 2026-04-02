@@ -1,48 +1,50 @@
-"use client";
+import React from "react";
 
-import { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+type ArtCardProps = {
+  id: string;
+  title: string;
+  url: string;
+  price: number;
+  onDelete: (id: string) => void;
+  onBuy: (id: string, price: number) => void;
+};
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-export default function ArtCard({ art }: any) {
-
-  const [price, setPrice] = useState(art.price);
-
-  async function updatePrice() {
-    await supabase
-      .from("arts")
-      .update({ price })
-      .eq("id", art.id);
-
-    alert("Preço atualizado!");
-  }
-
+export const ArtCard: React.FC<ArtCardProps> = ({
+  id,
+  title,
+  url,
+  price,
+  onDelete,
+  onBuy,
+}) => {
   return (
-    <div style={{
-      background: "#fff",
-      borderRadius: 10,
-      padding: 10
-    }}>
+    <div className="border p-2 m-2 w-60">
+      <img src={url} alt={title} className="w-full h-40 object-cover" />
 
-      <img src={art.image} style={{ width: "100%" }} />
+      <h2>{title}</h2>
+      <p>R$ {price}</p>
 
-      <input
-        value={price}
-        onChange={(e)=>setPrice(e.target.value)}
-      />
-
-      <button onClick={updatePrice}>
-        Salvar Preço
+      <button
+        onClick={() => onDelete(id)}
+        className="bg-red-500 text-white p-1 m-1"
+      >
+        Delete
       </button>
 
-      <p style={{ color: "#E63946" }}>
-        R$ {price}
-      </p>
+      <a
+        href={url}
+        download
+        className="bg-blue-500 text-white p-1 m-1 block text-center"
+      >
+        Download
+      </a>
 
+      <button
+        onClick={() => onBuy(id, price)}
+        className="bg-green-500 text-white p-1 m-1"
+      >
+        Comprar Pix
+      </button>
     </div>
   );
-}
+};
