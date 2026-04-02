@@ -1,9 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { Feed } from "../components/Feed";
+import { useEffect, useState } from "react";
+import Feed from "../components/Feed";
 import { supabase } from "../utils/supabaseClient";
 
+type Art = {
+  id: string;
+  title: string;
+  url: string;
+  price: number;
+};
+
 export default function Home() {
-  const [arts, setArts] = useState<any[]>([]);
+  const [arts, setArts] = useState<Art[]>([]);
 
   useEffect(() => {
     loadArts();
@@ -20,12 +27,12 @@ export default function Home() {
     setArts(data || []);
   }
 
-  const handleDelete = async (id: string) => {
+  async function handleDelete(id: string) {
     await supabase.from("arts").delete().eq("id", id);
-    setArts(arts.filter((a) => a.id !== id));
-  };
+    loadArts();
+  }
 
-  const handleBuy = async (id: string, price: number) => {
+  async function handleBuy(price: number) {
     const res = await fetch("/api/pix", {
       method: "POST",
       headers: {
@@ -36,7 +43,7 @@ export default function Home() {
 
     const data = await res.json();
     alert(data.message);
-  };
+  }
 
   return (
     <div>
