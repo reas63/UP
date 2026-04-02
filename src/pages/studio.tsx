@@ -6,16 +6,19 @@ export default function Studio() {
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
 
-  const uploadArt = async () => {
+  async function uploadArt() {
     if (!file) return alert("Selecione uma imagem");
 
-    const fileName = `${Date.now()}-${file.name}`;
+    const fileName = Date.now() + "-" + file.name;
 
     const { error } = await supabase.storage
-      .from("UPBlog") // <-- SEU BUCKET
+      .from("UPBlog")
       .upload(fileName, file);
 
-    if (error) return alert(error.message);
+    if (error) {
+      alert(error.message);
+      return;
+    }
 
     const { data } = supabase.storage
       .from("UPBlog")
@@ -24,16 +27,16 @@ export default function Studio() {
     await supabase.from("arts").insert([
       {
         title,
-        price: parseFloat(price),
-        url: data.publicUrl, // <-- CORRIGIDO
+        price: Number(price),
+        url: data.publicUrl,
       },
     ]);
 
-    alert("Arte enviada!");
-  };
+    alert("Upload feito!");
+  }
 
   return (
-    <div className="p-4">
+    <div>
       <h1>Studio</h1>
 
       <input
