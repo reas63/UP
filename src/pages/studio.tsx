@@ -15,10 +15,7 @@ export default function Studio() {
       .from("UPBlog")
       .upload(fileName, file);
 
-    if (error) {
-      alert(error.message);
-      return;
-    }
+    if (error) return alert(error.message);
 
     const { data } = supabase.storage
       .from("UPBlog")
@@ -35,8 +32,31 @@ export default function Studio() {
     alert("Upload feito!");
   }
 
+  // 🤖 IA
+  async function generateAI() {
+    const res = await fetch("/api/gemini", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ prompt: "arte digital moderna" }),
+    });
+
+    const data = await res.json();
+
+    await supabase.from("arts").insert([
+      {
+        title: "Arte IA",
+        price: 10,
+        url: data.url,
+      },
+    ]);
+
+    alert("Arte criada com IA!");
+  }
+
   return (
-    <div>
+    <div style={{ padding: 20 }}>
       <h1>Studio</h1>
 
       <input
@@ -56,7 +76,15 @@ export default function Studio() {
         onChange={(e) => setFile(e.target.files?.[0] || null)}
       />
 
+      <br /><br />
+
       <button onClick={uploadArt}>Enviar</button>
+
+      <br /><br />
+
+      <button onClick={generateAI}>
+        Gerar com IA 🤖
+      </button>
     </div>
   );
 }
