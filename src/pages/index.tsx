@@ -6,12 +6,19 @@ export default function Home() {
   const [arts, setArts] = useState<any[]>([]);
 
   useEffect(() => {
-    async function loadArts() {
-      const { data } = await supabase.from("arts").select("*");
-      setArts(data || []);
-    }
     loadArts();
   }, []);
+
+  async function loadArts() {
+    const { data, error } = await supabase.from("arts").select("*");
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    setArts(data || []);
+  }
 
   const handleDelete = async (id: string) => {
     await supabase.from("arts").delete().eq("id", id);
@@ -19,13 +26,22 @@ export default function Home() {
   };
 
   const handleBuy = async (id: string, price: number) => {
-    const { data } = await fetch("/api/pix", {
+    const res = await fetch("/api/pix", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount: price, user: "UsuárioTeste" }),
-    }).then(res => res.json());
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ amount: price }),
+    });
+
+    const data = await res.json();
     alert(data.message);
   };
 
-  return <Feed arts={arts} onDelete={handleDelete} onBuy={handleBuy} />;
+  return (
+    <div>
+      <h1>Feed de Artes</h1>
+      <Feed arts={arts} onDelete={handleDelete} onBuy={handleBuy} />
+    </div>
+  );
 }
