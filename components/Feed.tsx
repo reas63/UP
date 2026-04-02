@@ -1,5 +1,5 @@
 import React from "react";
-import { ArtCard } from "./ArtCard";
+import ArtCard from "./ArtCard";
 
 type Art = {
   id: string;
@@ -8,19 +8,15 @@ type Art = {
   price: number;
 };
 
-type FeedProps = {
+type Props = {
   arts: Art[];
   onDelete: (id: string) => void;
-  onBuy: (id: string, price: number) => void;
+  onBuy: (price: number) => void;
 };
 
-export const Feed: React.FC<FeedProps> = ({
-  arts,
-  onDelete,
-  onBuy,
-}) => {
+export default function Feed({ arts, onDelete, onBuy }: Props) {
   return (
-    <div className="flex flex-wrap">
+    <div>
       {arts.map((art) => (
         <ArtCard
           key={art.id}
@@ -34,4 +30,4 @@ export const Feed: React.FC<FeedProps> = ({
       ))}
     </div>
   );
-};
+}
