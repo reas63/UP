@@ -1,50 +1,32 @@
 import React from "react";
 
-type ArtCardProps = {
+type Props = {
   id: string;
   title: string;
   url: string;
   price: number;
   onDelete: (id: string) => void;
-  onBuy: (id: string, price: number) => void;
+  onBuy: (price: number) => void;
 };
 
-export const ArtCard: React.FC<ArtCardProps> = ({
+export default function ArtCard({
   id,
   title,
   url,
   price,
   onDelete,
   onBuy,
-}) => {
+}: Props) {
   return (
-    <div className="border p-2 m-2 w-60">
-      <img src={url} alt={title} className="w-full h-40 object-cover" />
+    <div style={{ border: "1px solid #ccc", padding: 10, margin: 10 }}>
+      <img src={url} alt={title} width="100%" />
 
-      <h2>{title}</h2>
+      <h3>{title}</h3>
       <p>R$ {price}</p>
 
-      <button
-        onClick={() => onDelete(id)}
-        className="bg-red-500 text-white p-1 m-1"
-      >
-        Delete
-      </button>
+      <button onClick={() => onDelete(id)}>Delete</button>
 
-      <a
-        href={url}
-        download
-        className="bg-blue-500 text-white p-1 m-1 block text-center"
-      >
-        Download
-      </a>
-
-      <button
-        onClick={() => onBuy(id, price)}
-        className="bg-green-500 text-white p-1 m-1"
-      >
-        Comprar Pix
-      </button>
+      <button onClick={() => onBuy(price)}>Comprar Pix</button>
     </div>
   );
-};
+}
