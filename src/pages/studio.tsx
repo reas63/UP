@@ -5,9 +5,10 @@ export default function Studio() {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
+  const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 📤 UPLOAD NORMAL
+  // 📤 UPLOAD MANUAL
   async function uploadArt() {
     if (!file) return alert("Selecione uma imagem");
 
@@ -41,8 +42,10 @@ export default function Studio() {
     alert("Upload feito!");
   }
 
-  // 🤖 GERAR IA REAL
+  // 🤖 GERAR ARTE COM GEMINI (GRÁTIS)
   async function generateAI() {
+    if (!prompt) return alert("Digite um prompt");
+
     setLoading(true);
 
     try {
@@ -51,52 +54,27 @@ export default function Studio() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          prompt: "arte digital moderna colorida estilo futurista",
-        }),
+        body: JSON.stringify({ prompt }),
       });
 
       const data = await res.json();
 
-      if (!data.image) {
+      if (!data.url) {
         setLoading(false);
         alert("Erro ao gerar imagem");
         return;
       }
 
-      // converter base64 para arquivo
-      const fileName = Date.now() + ".png";
-
-      const blob = await fetch(
-        `data:image/png;base64,${data.image}`
-      ).then((r) => r.blob());
-
-      // upload no Supabase
-      const { error } = await supabase.storage
-        .from("UPBlog")
-        .upload(fileName, blob);
-
-      if (error) {
-        setLoading(false);
-        alert(error.message);
-        return;
-      }
-
-      const { data: publicUrl } = supabase.storage
-        .from("UPBlog")
-        .getPublicUrl(fileName);
-
-      // salvar no banco
       await supabase.from("arts").insert([
         {
-          title: "Arte IA",
+          title: prompt,
           price: 10,
-          url: publicUrl.publicUrl,
+          url: data.url,
         },
       ]);
 
       setLoading(false);
-      alert("Imagem IA criada e salva!");
+      alert("Arte criada com IA!");
     } catch (err) {
       setLoading(false);
       alert("Erro na IA");
@@ -107,7 +85,9 @@ export default function Studio() {
     <div style={{ padding: 20 }}>
       <h1>Studio</h1>
 
-      {/* INPUTS */}
+      {/* INPUTS MANUAL */}
+      <h3>Upload Manual</h3>
+
       <input
         type="text"
         placeholder="Título"
@@ -126,22 +106,32 @@ export default function Studio() {
 
       <input
         type="file"
-        onChange={(e) =>
-          setFile(e.target.files?.[0] || null)
-        }
+        onChange={(e) => setFile(e.target.files?.[0] || null)}
       />
 
       <br /><br />
 
-      {/* BOTÕES */}
       <button onClick={uploadArt} disabled={loading}>
         {loading ? "Enviando..." : "Enviar Imagem"}
       </button>
 
+      <hr style={{ margin: "30px 0" }} />
+
+      {/* IA */}
+      <h3>Gerar com IA 🤖</h3>
+
+      <input
+        type="text"
+        placeholder="Ex: gato astronauta estilo neon"
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        style={{ width: "100%" }}
+      />
+
       <br /><br />
 
       <button onClick={generateAI} disabled={loading}>
-        {loading ? "Gerando..." : "Gerar Arte com IA 🤖"}
+        {loading ? "Gerando..." : "Gerar Arte com IA"}
       </button>
     </div>
   );
