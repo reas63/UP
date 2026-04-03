@@ -6,18 +6,8 @@ export default function Studio() {
   const [prompt, setPrompt] = useState("")
   const [image, setImage] = useState("")
 
-  const gerarImagem = async () => {
-    try {
-      const res = await fetch("/api/gemini", {
-        method: "POST",
-        body: JSON.stringify({ prompt }),
-      })
-
-      const data = await res.json()
-      setImage(data.url)
-    } catch (e) {
-      alert("Erro ao gerar imagem")
-    }
+  const gerarImagem = () => {
+    alert("IA ainda não configurada")
   }
 
   return (
