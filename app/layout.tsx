@@ -1,14 +1,21 @@
-import "./globals.css";
-
 export const metadata = {
-  title: "UP",
-  description: "UP - Digital Art Marketplace"
-};
+  title: "UPBlog",
+  description: "Plataforma de vendas digitais com IA e Pix"
+}
 
-export default function RootLayout({ children }: any) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="pt-br">
-      <body>{children}</body>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+      </head>
+      <body style={{ margin: 0, fontFamily: "sans-serif" }}>
+        {children}
+      </body>
     </html>
-  );
+  )
 }
